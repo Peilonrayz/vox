@@ -35,6 +35,7 @@ class Manager:
             def inner(session):
                 for mutation in mutations:
                     self.messages = mutation(self.messages)
+                self.messages = list(self.messages)
                 fn(self.messages)
                 if self.messages:
                     session.error('There are errors to be fixed')
