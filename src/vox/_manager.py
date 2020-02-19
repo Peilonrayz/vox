@@ -1,10 +1,10 @@
 import functools
 
 import nox
-
 import vox.linters
+
 from ._flags import FlagsBuilder
-from ._session import session, Session
+from ._session import Session, session
 
 
 class Manager:
@@ -25,9 +25,11 @@ class Manager:
                 session._flags += self._flags
                 session.notifier = self.display_fn
                 return fn(session)
+
             return inner
+
         return wrapper
-    
+
     def display(self, mutations=None, *, clear=True):
         def wrapper(fn):
             @nox.session
@@ -38,16 +40,18 @@ class Manager:
                 self.messages = list(self.messages)
                 fn(self.messages)
                 if self.messages:
-                    session.error('There are errors to be fixed')
+                    session.error("There are errors to be fixed")
                 if clear:
                     self.messages.clear()
+
             self.display_fn = inner
             return inner
+
         return wrapper
 
     def lint(self, linter: vox.linters.BaseLinter, command=None):
         def inner(session: vox.Session):
             session.lint(command=command)
-        
+
         inner.__name__ = linter.NAME
         self.session(program=linter)(inner)

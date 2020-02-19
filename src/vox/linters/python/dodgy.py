@@ -1,14 +1,12 @@
 import vox
-from vox import linty, flaggy
+from vox import flaggy, linty
+
 from ..base_linter import BaseLinter
 
 
 class Dodgy(BaseLinter):
-    COMMAND = (
-        vox .FlagsBuilder()
-            .sugar(program='dodgy')
-    )
-    DEPENDENCIES = ['dodgy']
+    COMMAND = vox.FlagsBuilder().sugar(program="dodgy")
+    DEPENDENCIES = ["dodgy"]
     FORMAT = None
-    NAME = 'dodgy'
+    NAME = "dodgy"
     extract_errors = linty.from_str.echo

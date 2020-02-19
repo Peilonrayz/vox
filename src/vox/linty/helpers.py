@@ -2,37 +2,36 @@
 # nosa: pylint[:Unused argument 'task']
 from __future__ import annotations
 
-import logging
 import dataclasses
+import logging
 import os
 import re
 import string
-from typing import (
-    Any, Callable, Dict, Generic, Iterator, List, Mapping, Optional,
-    Sequence, Tuple, TypeVar, Union,
-)
+from typing import (Any, Callable, Dict, Generic, Iterator, List, Mapping,
+                    Optional, Sequence, Tuple, TypeVar, Union)
 
 import parse  # nosa: (mypy)
+from typing_extensions import Protocol  # nosa: pylint[E0401]
+
 # nosa: pylint[:Module 'parse' has no]
 
-from typing_extensions import Protocol   # nosa: pylint[E0401]
 
 """Core objects."""
 # nosa: E501,pylint[:Line too long]
 
 __all__ = [
-    'TTask',
-    'Task',
-    'Format',
-    'Message',
-    'MessageKeys',
-    'create_internal',
-    'regex_line_match',
-    'chain',
-    'extract_files',
-    'extract_lines',
-    'format_matches',
-    'Converter',
+    "TTask",
+    "Task",
+    "Format",
+    "Message",
+    "MessageKeys",
+    "create_internal",
+    "regex_line_match",
+    "chain",
+    "extract_files",
+    "extract_lines",
+    "format_matches",
+    "Converter",
 ]
 
 
@@ -40,28 +39,28 @@ TTask = Dict[str, Any]
 
 # nosa(4): pylint[C0103]
 logger = logging.getLogger(__name__)
-T = TypeVar('T')
-TIn = TypeVar('TIn', contravariant=True)
-TOut = TypeVar('TOut', covariant=True)
+T = TypeVar("T")
+TIn = TypeVar("TIn", contravariant=True)
+TOut = TypeVar("TOut", covariant=True)
 
 
 class Task:
     """Task names."""
 
-    NAME = 'name'
-    EXTENDS = 'extends'
-    DEPS = 'deps'
-    CONFIG_PATH = 'config_path'
-    CONVERTER = 'converter'
-    PYTHON = 'python'
-    COMMAND = 'command'
+    NAME = "name"
+    EXTENDS = "extends"
+    DEPS = "deps"
+    CONFIG_PATH = "config_path"
+    CONVERTER = "converter"
+    PYTHON = "python"
+    COMMAND = "command"
 
 
 class Less:
     """Object that is always less than anything."""
 
     def __str__(self):
-        return 'None'  # For when output doesn't convert from Less.
+        return "None"  # For when output doesn't convert from Less.
 
     # nosa: pylint[C0123]
     def __lt__(self, other: Any) -> bool:
@@ -106,15 +105,15 @@ LESS = Less()
 class MessageKeys:
     """Message names."""
 
-    APP = 'app'
-    PATH = 'path'
-    LINE = 'line'
-    CHAR = 'char'
-    CODE = 'code'
-    CODE_READABLE = 'code_readable'
-    MESSAGE = 'msg'
-    EXTENDS = 'extends'
-    EXTRAS = 'extras'
+    APP = "app"
+    PATH = "path"
+    LINE = "line"
+    CHAR = "char"
+    CODE = "code"
+    CODE_READABLE = "code_readable"
+    MESSAGE = "msg"
+    EXTENDS = "extends"
+    EXTRAS = "extras"
 
 
 def _default(value, obj, default):
@@ -186,8 +185,7 @@ class Converter(Protocol, Generic[TIn, TOut]):
         """Convert task and output to TOut."""
 
 
-def cast(value: Any, type_: Callable[[Any], T], default: Any = None,
-         ) -> Optional[T]:
+def cast(value: Any, type_: Callable[[Any], T], default: Any = None,) -> Optional[T]:
     """Cast value defaulting to default on TypeError."""
     try:
         return type_(value)
@@ -195,7 +193,7 @@ def cast(value: Any, type_: Callable[[Any], T], default: Any = None,
         return default
 
 
-@parse.with_pattern(r'.:.+?|.*?')
+@parse.with_pattern(r".:.+?|.*?")
 def _parse_file(path: str) -> str:
     """Handle File types in formats."""
     return path
@@ -206,17 +204,19 @@ def create_internal(task: TTask, msg: Dict[str, Any]) -> Message:
     path = msg.pop(MessageKeys.PATH, None)
     if path is not None and not os.path.isabs(path):
         path = os.path.abspath(path)
-    return Message.from_dict({
-        MessageKeys.APP: msg.pop(MessageKeys.APP, None) or task[Task.NAME],
-        MessageKeys.PATH: path,
-        MessageKeys.LINE: cast(msg.pop(MessageKeys.LINE, None), int),
-        MessageKeys.CHAR: cast(msg.pop(MessageKeys.CHAR, None), int),
-        MessageKeys.CODE: msg.pop(MessageKeys.CODE, None),
-        MessageKeys.CODE_READABLE: msg.pop(MessageKeys.CODE_READABLE, None),
-        MessageKeys.MESSAGE: msg.pop(MessageKeys.MESSAGE, None),
-        MessageKeys.EXTENDS: task.get(Task.EXTENDS, []),
-        MessageKeys.EXTRAS: [msg],
-    })
+    return Message.from_dict(
+        {
+            MessageKeys.APP: msg.pop(MessageKeys.APP, None) or task[Task.NAME],
+            MessageKeys.PATH: path,
+            MessageKeys.LINE: cast(msg.pop(MessageKeys.LINE, None), int),
+            MessageKeys.CHAR: cast(msg.pop(MessageKeys.CHAR, None), int),
+            MessageKeys.CODE: msg.pop(MessageKeys.CODE, None),
+            MessageKeys.CODE_READABLE: msg.pop(MessageKeys.CODE_READABLE, None),
+            MessageKeys.MESSAGE: msg.pop(MessageKeys.MESSAGE, None),
+            MessageKeys.EXTENDS: task.get(Task.EXTENDS, []),
+            MessageKeys.EXTRAS: [msg],
+        }
+    )
 
 
 def regex_line_match(regex: str) -> Converter[str, Iterator[Message]]:
@@ -224,55 +224,56 @@ def regex_line_match(regex: str) -> Converter[str, Iterator[Message]]:
     pattern = re.compile(regex)
 
     def inner(task: TTask, output: str) -> Iterator[Message]:
-        for line in output.split('\n'):
+        for line in output.split("\n"):
             match = pattern.match(line)
             if not match:
                 if line:
-                    logger.warning(Format(
-                        'No match for {regex} in {line}.',
-                        regex=regex,
-                        line=line,
-                    ))
+                    logger.warning(
+                        Format(
+                            "No match for {regex} in {line}.", regex=regex, line=line,
+                        )
+                    )
                 continue
             group = match.groupdict()
             yield create_internal(task, group)
+
     return inner
 
 
-def chain(*calls: Converter[Any, Any],
-          ) -> Converter[str, Iterator[Message]]:
+def chain(*calls: Converter[Any, Any],) -> Converter[str, Iterator[Message]]:
     """Chain multiple Converters."""
+
     def inner(task, output):
         for call in calls:
             output = call(task, output)
         yield from output
+
     return inner
 
 
-def format_matches(format_string: str,
-                   ) -> Converter[List[str], Iterator[Message]]:
+def format_matches(format_string: str,) -> Converter[List[str], Iterator[Message]]:
     """Convert messages from string to dict."""
     compiled_format = None
 
     def inner(task: TTask, matches: List[str]) -> Iterator[Message]:
         nonlocal compiled_format
         if compiled_format is None:
-            compiled_format = parse.compile(
-                format_string,
-                {'File': _parse_file},
-            )
+            compiled_format = parse.compile(format_string, {"File": _parse_file},)
 
         for line in matches:
             match = compiled_format.parse(line.lstrip())
             if not match:
                 if line:
-                    logger.warning(Format(
-                        'No match for {format_string} in {line}.',
-                        format_string=format_string,
-                        line=line,
-                    ))
+                    logger.warning(
+                        Format(
+                            "No match for {format_string} in {line}.",
+                            format_string=format_string,
+                            line=line,
+                        )
+                    )
                 continue
             yield create_internal(task, match.named)
+
     # TODO: figure out why mypy complains
     return inner
 
@@ -286,16 +287,15 @@ def extract_files(task: TTask, output: str) -> Iterator[str]:
     """Extract data that are grouped by file."""
     path = None
     for line in output.splitlines():
-        if not line.startswith('    '):
+        if not line.startswith("    "):
             path = line
             continue
 
-        yield (path or '') + ': ' + line[4:]
+        yield (path or "") + ": " + line[4:]
 
 
 def from_format(
-    format_string: str,
-    extract: Callable = extract_lines,
+    format_string: str, extract: Callable = extract_lines,
 ) -> Converter[str, Iterator[Message]]:
     """Handle output which follow set format."""
     return chain(extract, format_matches(format_string))

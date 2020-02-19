@@ -1,14 +1,14 @@
 import vox
-from vox import linty, flaggy
+from vox import flaggy, linty
+
 from ..base_linter import BaseLinter
 
 
 class Twistedchecker(BaseLinter):
-    COMMAND = (
-        vox .FlagsBuilder()
-            .sugar(program='twistedchecker --confidence=INFERENCE --pep8=y')
+    COMMAND = vox.FlagsBuilder().sugar(
+        program="twistedchecker --confidence=INFERENCE --pep8=y"
     )
-    DEPENDENCIES = ['twistedchecker']
+    DEPENDENCIES = ["twistedchecker"]
     FORMAT = None
-    NAME = 'twistedchecker'
+    NAME = "twistedchecker"
     extract_errors = linty.from_str.echo

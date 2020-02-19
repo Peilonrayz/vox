@@ -1,14 +1,12 @@
 import vox
-from vox import linty, flaggy
+from vox import flaggy, linty
+
 from ..base_linter import BaseLinter
 
 
 class Pyre(BaseLinter):
-    COMMAND = (
-        vox .FlagsBuilder()
-            .sugar(program='pyre check --source-directory')
-    )
-    DEPENDENCIES = ['pyre-check']
+    COMMAND = vox.FlagsBuilder().sugar(program="pyre check --source-directory")
+    DEPENDENCIES = ["pyre-check"]
     FORMAT = None
-    NAME = 'pyre'
+    NAME = "pyre"
     extract_errors = linty.from_str.echo

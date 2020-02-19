@@ -9,10 +9,10 @@ import re
 import tokenize
 from typing import Any, Iterator, List, Optional, Tuple
 
-from vox.linty.helpers import Format, LESS, Less, Message
+from vox.linty.helpers import LESS, Format, Less, Message
 
 # nosa(2): pylint[C0103]
-_get_path = operator.attrgetter('path')
+_get_path = operator.attrgetter("path")
 logger = logging.getLogger(__name__)
 
 
@@ -41,12 +41,13 @@ TokenPosition = Tuple[int, tokenize.TokenInfo]
 Scoped = Tuple[object, List[tokenize.TokenInfo]]
 
 
-def _convert_scope(queue: List[Scoped],
-                   comment_global: bool = True,
-                   ) -> Iterator[Scoped]:
+def _convert_scope(
+    queue: List[Scoped], comment_global: bool = True,
+) -> Iterator[Scoped]:
     """Convert from Scope to Position."""
     for i, (type_, values) in enumerate(queue):
-        if (comment_global
+        if (
+            comment_global
             and type_ is Scope.COMMENT
             and any(Scope.DEFINITION == t for t, _ in queue[i:])
         ):
@@ -55,11 +56,9 @@ def _convert_scope(queue: List[Scoped],
             yield SCOPE_TO_POSITION[type_], values
 
 
-def handle_queue(queue: List[Scoped],
-                 scope: int,
-                 prev: int,
-                 prev_orig: int,
-                 ) -> Iterator[TokenPosition]:
+def handle_queue(
+    queue: List[Scoped], scope: int, prev: int, prev_orig: int,
+) -> Iterator[TokenPosition]:
     """Handle queue."""
     place = {
         Position.PREV: prev,
@@ -72,21 +71,18 @@ def handle_queue(queue: List[Scoped],
             yield (pos, value)
 
 
-def _with_scope(tokens: Iterator[tokenize.TokenInfo],
-                ) -> Iterator[TokenPosition]:
+def _with_scope(tokens: Iterator[tokenize.TokenInfo],) -> Iterator[TokenPosition]:
     """Add scope to tokens."""
     queue: List[Scoped] = []
     prev = 1
     prev_orig = 1
     for line, values in itertools.groupby(tokens, lambda i: i.line):
-        striped_line = line.lstrip(' ')
-        if striped_line.startswith('#'):
+        striped_line = line.lstrip(" ")
+        if striped_line.startswith("#"):
             queue.append((Scope.COMMENT, list(values)))
         elif not line.strip():
             queue.append((Scope.EMPTY_LINE, list(values)))
-        elif (striped_line.startswith('def')
-              or striped_line.startswith('class')
-        ):
+        elif striped_line.startswith("def") or striped_line.startswith("class"):
             queue.append((Scope.DEFINITION, list(values)))
             prev_orig = len(line) - len(striped_line) + 1
         else:
@@ -120,7 +116,7 @@ def _find_nosa(path: str) -> Iterator[Tuple[str, bool, int, Tuple[int, int]]]:
     # Test
     scopes: List[TScope] = [(-1, [])]
     line_no = 0
-    with open(path, 'rb') as file:
+    with open(path, "rb") as file:
         prev = None
         tokens = _with_scope(tokenize.tokenize(file.readline))
         for spaces, (token_type, value, (line_no, _), _, _) in tokens:
@@ -155,7 +151,7 @@ class ErrorValue:
         """Convert into string form."""
         output = str(self.code)
         if self.message:
-            output += ':' + self.message
+            output += ":" + self.message
         return output
 
     def __contains__(self, item: Message):
@@ -171,7 +167,7 @@ class ErrorValue:
     @classmethod
     def from_string(cls, value: str) -> ErrorValue:
         """Build from string form."""
-        code, message, *_ = value.split(':') + ['']
+        code, message, *_ = value.split(":") + [""]
         return cls(code, message)
 
 
@@ -185,10 +181,10 @@ class Error:
 
     def __str__(self) -> str:
         """Convert into non-ambiguous string form."""
-        programs = ','.join(self.programs)
-        programs = f'({programs})'
-        values = ','.join(str(v) for v in self.values)
-        values = f'[{values}]'
+        programs = ",".join(self.programs)
+        programs = f"({programs})"
+        values = ",".join(str(v) for v in self.values)
+        values = f"[{values}]"
         return programs + values
 
     def __contains__(self, item: Message):
@@ -204,25 +200,19 @@ class Error:
     @classmethod
     def from_string(cls, error: str) -> Error:
         """Build from string form."""
-        start, end, *_ = error.split('[', 1) + ['']
-        if start.startswith('('):
+        start, end, *_ = error.split("[", 1) + [""]
+        if start.startswith("("):
             start = start[1:-1]
         elif not end:
-            end = start + ']'
-            start = ''
+            end = start + "]"
+            start = ""
         if start:
-            start_ = start.split(',')
+            start_ = start.split(",")
         else:
             start_ = []
         if end:
             end = end[:-1]
-        return cls(
-            start_,
-            [
-                ErrorValue.from_string(e)
-                for e in end.split(',')
-            ],
-        )
+        return cls(start_, [ErrorValue.from_string(e) for e in end.split(",")],)
 
 
 class State:
@@ -241,7 +231,7 @@ class Errors:
 
     def __str__(self):
         """Convert to string form."""
-        return ','.join(str(e) for e in self.errors)
+        return ",".join(str(e) for e in self.errors)
 
     def __contains__(self, item: Message):
         """Check if contains error."""
@@ -260,30 +250,29 @@ class Errors:
         name = []
         state = State.GLOBAL
         for char in errors:
-            if char in ' ' and state is State.GLOBAL:
+            if char in " " and state is State.GLOBAL:
                 break
-            elif char in '([':
+            elif char in "([":
                 name.append(char)
                 state = State.BRACKET
-            elif char in '])':
+            elif char in "])":
                 name.append(char)
                 state = State.GLOBAL
-            elif char == ',' and state is State.GLOBAL:
-                split_errors.append(''.join(name))
+            elif char == "," and state is State.GLOBAL:
+                split_errors.append("".join(name))
                 name = []
             else:
                 name.append(char)
         if name:
-            split_errors.append(''.join(name))
+            split_errors.append("".join(name))
         return split_errors
 
     @classmethod
     def from_string(cls, errors: str) -> Errors:
         """Build Errors from string form."""
-        return cls([
-            Error.from_string(error)
-            for error in cls._split_top_level_errors(errors)
-        ])
+        return cls(
+            [Error.from_string(error) for error in cls._split_top_level_errors(errors)]
+        )
 
 
 class NOSA:
@@ -298,14 +287,15 @@ class NOSA:
 
     def __str__(self):
         """Build string."""
-        ret = f'{self.name}({self.start}->{self.stop})'
+        ret = f"{self.name}({self.start}->{self.stop})"
         if self.errors:
-            ret += f': {self.errors}'
+            ret += f": {self.errors}"
         return ret
 
     def __contains__(self, item: Message):
         """Check if message should be silenced."""
-        if (not isinstance(item.line, Less)
+        if (
+            not isinstance(item.line, Less)
             and not self.start <= int(item.line) <= self.stop
         ):
             return False
@@ -313,49 +303,43 @@ class NOSA:
 
     # nosa(2): pylint[R0913]
     @classmethod
-    def from_comment(cls,
-                     string: str,
-                     type_: bool,
-                     location: int,
-                     start: int,  # nosa: pylint[W0613]
-                     stop: int,
-                     *,
-                     _nosa: str = 'nosa',
-                     ) -> Optional[NOSA]:
+    def from_comment(
+        cls,
+        string: str,
+        type_: bool,
+        location: int,
+        start: int,  # nosa: pylint[W0613]
+        stop: int,
+        *,
+        _nosa: str = "nosa",
+    ) -> Optional[NOSA]:
         """Build NOSA from string."""
         if _nosa not in string:
             return None
-        regex = '(' + _nosa + r')(?:\((\d*)(?:,(\d*))?\))?(?:: (.*))?'
+        regex = "(" + _nosa + r")(?:\((\d*)(?:,(\d*))?\))?(?:: (.*))?"
         match = re.search(regex, string)
         if match is None:
             return None
         groups: List[Any] = list(match.groups())
-        if groups[1] == '' or groups[1] is None:
+        if groups[1] == "" or groups[1] is None:
             groups[1] = stop if type_ else location
         else:
             groups[1] = location + int(groups[1])
-        if groups[2] == '' or groups[2] is None:
+        if groups[2] == "" or groups[2] is None:
             groups[2] = location
         else:
             groups[2] = location - int(groups[2])
-        if groups[3] == '':
+        if groups[3] == "":
             groups[3] = None
         if groups[3]:
             groups[3] = Errors.from_string(groups[3])
         return cls(*groups)
 
 
-def _filter_nosa(comments, _nosa='nosa'):
+def _filter_nosa(comments, _nosa="nosa"):
     """Filter all comments to ones that are nosa."""
     for comment, type_, location, (start, stop) in comments:
-        nosa = NOSA.from_comment(
-            comment,
-            type_,
-            location,
-            start,
-            stop,
-            _nosa=_nosa,
-        )
+        nosa = NOSA.from_comment(comment, type_, location, start, stop, _nosa=_nosa,)
         if nosa is not None:
             yield nosa
 
@@ -374,4 +358,4 @@ def remove_nosa(objects):
             if unmuted:
                 yield item
         for nosa in itertools.compress(nosas, unused):
-            logger.info(Format('Unused nosa: {0!s}', nosa))
+            logger.info(Format("Unused nosa: {0!s}", nosa))

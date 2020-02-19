@@ -24,52 +24,55 @@ class ChainMap(MutableMapping[str, Any]):
     >>> cm['a']
     'foo'
     """
-    __slots__ = ('_parent', '_values', '_chain')
+
+    __slots__ = ("_parent", "_values", "_chain")
 
     _values: Dict[str, Any]
     _parent: MutableMapping[str, Any]
     _chain: MutableMapping[str, Any]
 
-    def __init__(self, parent: Optional[MutableMapping[str, Any]] = None, **kwargs: Any) -> None:
+    def __init__(
+        self, parent: Optional[MutableMapping[str, Any]] = None, **kwargs: Any
+    ) -> None:
         self._values = kwargs
         self.parent = parent
-    
+
     @property
     def parent(self):
         return self._parent
-    
+
     @parent.setter
     def parent(self, parent):
         self._parent = parent
         parents = [self._values] + ([] if parent is None else [parent])
         self._chain = collections.ChainMap(*parents)
-    
+
     def __repr__(self):
         keys = {
-            'parent': id(self._parent),
+            "parent": id(self._parent),
             **self._values,
         }
-        values = ', '.join(f'{key}={value!r}' for key, value in keys.items())
-        return f'{type(self).__qualname__}({values})'
+        values = ", ".join(f"{key}={value!r}" for key, value in keys.items())
+        return f"{type(self).__qualname__}({values})"
 
     def __getitem__(self, key: str) -> Any:
         return self._chain[key]
-    
+
     def __setitem__(self, key: str, value: Any) -> None:
         self._values[key] = value
-    
+
     def __delitem__(self, key: str) -> None:
         del self._values[key]
-    
+
     def __iter__(self):
         return iter(self._chain)
-    
+
     def __len__(self):
         return len(self._chain)
-    
+
     def copy(self):
         return type(self)(self._parent, **self._values)
-    
+
     def update(self, other):
         """
         Update values with another mapping.
@@ -91,7 +94,7 @@ class ChainMap(MutableMapping[str, Any]):
         if isinstance(other, ChainMap):
             other = other._values
         if not isinstance(other, collections.abc.Mapping):
-            raise TypeError(f'Unknown type {type(other)}')
+            raise TypeError(f"Unknown type {type(other)}")
         self._values.update(other)
 
 
@@ -112,6 +115,7 @@ class ChainObject(ChainMap):
     >>> f.b
     2
     """
+
     def __getattr__(self, key):
         if key in dir(self):
             return super().__getattribute__(key)
