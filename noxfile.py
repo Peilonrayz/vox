@@ -49,7 +49,7 @@ def hint(session):
 
 @nox.session
 def lint(session):
-    session.install("nox", r"F:\Git\vox", "check-manifest")
+    session.install("nox", "vox", "check-manifest")
     session.run("check-manifest")
     session.run("nox", "-r", "-f", "noxfile-lint.py", "--", *session.posargs)
 
