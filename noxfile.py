@@ -51,6 +51,8 @@ def hint(session):
 def lint(session):
     session.install("nox", "vox", "check-manifest")
     # session.run("check-manifest")
+    import pathlib
+    print(', '.join(p.name for p in pathlib.Path('.').iterdir()))
     session.run("nox", "-r", "-f", "noxfile-lint.py", "--", *session.posargs)
 
 
