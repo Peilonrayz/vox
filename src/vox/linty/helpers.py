@@ -7,8 +7,20 @@ import logging
 import os
 import re
 import string
-from typing import (Any, Callable, Dict, Generic, Iterator, List, Mapping,
-                    Optional, Sequence, Tuple, TypeVar, Union)
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generic,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 import parse  # nosa: (mypy)
 from typing_extensions import Protocol  # nosa: pylint[E0401]

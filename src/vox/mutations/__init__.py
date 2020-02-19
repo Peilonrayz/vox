@@ -4,8 +4,7 @@ import collections
 import dataclasses
 import itertools
 import operator
-from typing import (Any, Dict, Iterator, List, Optional, Sequence, Set, Tuple,
-                    Union)
+from typing import Any, Dict, Iterator, List, Optional, Sequence, Set, Tuple, Union
 
 from mypy_extensions import TypedDict  # nosa: pylint[E0401]
 from vox.linty.helpers import LESS, Less, Message
