@@ -52,7 +52,7 @@ def lint(session):
     session.install("nox", "vox")
     # session.run("check-manifest")
 
-    # Delete nox session so vox can run.
+    # Delete NOXSESSION so vox can run on CI.
     session.env.pop("NOXSESSION", None)
     session.run("nox", "-r", "-f", "noxfile-lint.py", "--", *session.posargs)
 
