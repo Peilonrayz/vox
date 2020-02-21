@@ -1,12 +1,20 @@
 #!/usr/bin/env python
 from setuptools import find_packages, setup
 
+try:
+    import ConfigParser as configparser
+except ImportError:
+    import configparser
+
 with open("README.rst") as f:
     LONG_DESCRIPTION = f.read()
 
+config = configparser.ConfigParser()
+config.read("setup.cfg")
+
 setup(
     name="vox",
-    version="0.0.1",
+    version=config.get("src", "version"),
     license="MIT",
     description="Runs linters seperately and outputs them as one.",
     long_description=LONG_DESCRIPTION,

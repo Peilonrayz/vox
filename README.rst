@@ -1,4 +1,4 @@
-vox
+Vox
 ===
 
 .. image:: https://travis-ci.com/Peilonrayz/vox.svg?branch=master
@@ -39,4 +39,4 @@ To run all tests run ``nox``. No venv is needed; nox makes all of them for us.
 License
 -------
 
-vox is available under the MIT license.
+Vox is available under the MIT license.
